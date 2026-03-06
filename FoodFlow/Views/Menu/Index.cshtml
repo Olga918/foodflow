@@ -1,0 +1,68 @@
+@model FoodFlow.ViewModels.MenuIndexViewModel
+
+<h2 class="mb-3">Menu</h2>
+
+<div class="mb-3 d-flex flex-wrap gap-2">
+    @if (Model.SelectedCategoryId is null)
+    {
+        <a asp-controller="Menu" asp-action="Index" class="btn btn-primary btn-sm">All categories</a>
+    }
+    else
+    {
+        <a asp-controller="Menu" asp-action="Index" class="btn btn-outline-primary btn-sm">All categories</a>
+    }
+
+    @foreach (var category in Model.Categories)
+    {
+        if (Model.SelectedCategoryId == category.Id)
+        {
+            <a asp-controller="Menu"
+               asp-action="Index"
+               asp-route-categoryId="@category.Id"
+               class="btn btn-primary btn-sm">@category.Name</a>
+        }
+        else
+        {
+            <a asp-controller="Menu"
+               asp-action="Index"
+               asp-route-categoryId="@category.Id"
+               class="btn btn-outline-primary btn-sm">@category.Name</a>
+        }
+    }
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Available</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Category?.Name</td>
+                <td>@item.Description</td>
+                <td>@item.Price.ToString("0.00")</td>
+                <td>@(item.IsAvailable ? "Yes" : "No")</td>
+                <td>
+                    @if (item.IsAvailable)
+                    {
+                        <form method="post" asp-controller="Cart" asp-action="Add" class="d-flex gap-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="menuItemId" value="@item.Id" />
+                            <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm" style="max-width: 80px;" />
+                            <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

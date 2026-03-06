@@ -1,0 +1,19 @@
+@using FoodFlow.Enums
+
+@{
+    ViewData["Title"] = "Order created";
+    var orderType = (OrderType)ViewBag.OrderType;
+}
+
+<div class="card p-4 shadow-sm">
+    <h2 class="mb-3 text-success">Order created successfully</h2>
+    <p class="mb-1"><strong>Order #:</strong> @ViewBag.OrderId</p>
+    <p class="mb-1"><strong>Type:</strong> @orderType</p>
+    <p class="mb-1"><strong>Created at:</strong> @ViewBag.CreatedAt</p>
+    <p class="mb-3"><strong>Total:</strong> @(((decimal)ViewBag.TotalAmount).ToString("0.00"))</p>
+
+    <div class="d-flex gap-2">
+        <a asp-controller="Menu" asp-action="Index" class="btn btn-primary">Back to menu</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Home</a>
+    </div>
+</div>

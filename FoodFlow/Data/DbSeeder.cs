@@ -1,0 +1,254 @@
+using FoodFlow.Enums;
+using FoodFlow.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+namespace FoodFlow.Data
+{
+    public static class DbSeeder
+    {
+        public static async Task SeedAsync(IServiceProvider services)
+        {
+            var scopeFactory = services.GetRequiredService<IServiceScopeFactory>();
+            using var scope = scopeFactory.CreateScope();
+
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await db.Database.MigrateAsync();
+
+            var roles = new[]
+            {
+                UserRole.Client.ToString(),
+                UserRole.Cook.ToString(),
+                UserRole.Storekeeper.ToString(),
+                UserRole.Admin.ToString()
+            };
+
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
+
+            const string adminEmail = "admin@foodflow.local";
+            var admin = await userManager.FindByEmailAsync(adminEmail);
+            if (admin is null)
+            {
+                admin = new ApplicationUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    FullName = "FoodFlow Admin",
+                    EmailConfirmed = true
+                };
+
+                var createResult = await userManager.CreateAsync(admin, "Admin123!");
+                if (createResult.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(admin, UserRole.Admin.ToString());
+                }
+            }
+
+            await EnsureUserWithRoleAsync(
+                userManager,
+                "cook@foodflow.local",
+                "Cook123!",
+                "FoodFlow Cook",
+                UserRole.Cook.ToString());
+
+            await EnsureUserWithRoleAsync(
+                userManager,
+                "storekeeper@foodflow.local",
+                "Store123!",
+                "FoodFlow Storekeeper",
+                UserRole.Storekeeper.ToString());
+
+            var pizzaCategoryId = await EnsureCategoryAsync(db, "Pizza", 1);
+            var burgerCategoryId = await EnsureCategoryAsync(db, "Burgers", 2);
+            var pastaCategoryId = await EnsureCategoryAsync(db, "Pasta", 3);
+            var saladsCategoryId = await EnsureCategoryAsync(db, "Salads", 4);
+            var drinksCategoryId = await EnsureCategoryAsync(db, "Drinks", 5);
+            var dessertsCategoryId = await EnsureCategoryAsync(db, "Desserts", 6);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Margherita",
+                "Classic pizza with tomato sauce and mozzarella.",
+                pizzaCategoryId,
+                8.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Pepperoni",
+                "Tomato sauce, mozzarella and spicy pepperoni.",
+                pizzaCategoryId,
+                10.49m);
+            await EnsureMenuItemAsync(
+                db,
+                "BBQ Chicken Pizza",
+                "Chicken, mozzarella, red onion and BBQ sauce.",
+                pizzaCategoryId,
+                11.99m);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Cheese Burger",
+                "Beef patty, cheddar, tomato and signature sauce.",
+                burgerCategoryId,
+                7.49m);
+            await EnsureMenuItemAsync(
+                db,
+                "Double Burger",
+                "Double beef patty, cheddar and pickles.",
+                burgerCategoryId,
+                9.29m);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Carbonara",
+                "Cream sauce, bacon and parmesan.",
+                pastaCategoryId,
+                8.49m);
+            await EnsureMenuItemAsync(
+                db,
+                "Bolognese",
+                "Traditional meat sauce with parmesan.",
+                pastaCategoryId,
+                8.99m);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Caesar Salad",
+                "Romaine, chicken, croutons and Caesar dressing.",
+                saladsCategoryId,
+                6.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Greek Salad",
+                "Tomato, cucumber, feta, olives and olive oil.",
+                saladsCategoryId,
+                6.49m);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Cola",
+                "0.5L soft drink.",
+                drinksCategoryId,
+                1.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Orange Juice",
+                "Fresh orange juice 0.3L.",
+                drinksCategoryId,
+                2.79m);
+            await EnsureMenuItemAsync(
+                db,
+                "Americano",
+                "Hot black coffee.",
+                drinksCategoryId,
+                2.29m);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Cheesecake",
+                "Classic cheesecake with berry topping.",
+                dessertsCategoryId,
+                4.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Chocolate Brownie",
+                "Warm brownie with chocolate sauce.",
+                dessertsCategoryId,
+                4.49m);
+        }
+
+        private static async Task EnsureUserWithRoleAsync(
+            UserManager<ApplicationUser> userManager,
+            string email,
+            string password,
+            string fullName,
+            string role)
+        {
+            var user = await userManager.FindByEmailAsync(email);
+            if (user is null)
+            {
+                user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    FullName = fullName,
+                    EmailConfirmed = true
+                };
+
+                var createResult = await userManager.CreateAsync(user, password);
+                if (!createResult.Succeeded)
+                {
+                    return;
+                }
+            }
+
+            if (!await userManager.IsInRoleAsync(user, role))
+            {
+                await userManager.AddToRoleAsync(user, role);
+            }
+        }
+
+        private static async Task<int> EnsureCategoryAsync(ApplicationDbContext db, string name, int sortOrder)
+        {
+            var category = await db.MenuCategories.FirstOrDefaultAsync(x => x.Name == name);
+            if (category is null)
+            {
+                category = new MenuCategory
+                {
+                    Name = name,
+                    SortOrder = sortOrder
+                };
+
+                await db.MenuCategories.AddAsync(category);
+                await db.SaveChangesAsync();
+                return category.Id;
+            }
+
+            if (category.SortOrder != sortOrder)
+            {
+                category.SortOrder = sortOrder;
+                await db.SaveChangesAsync();
+            }
+
+            return category.Id;
+        }
+
+        private static async Task EnsureMenuItemAsync(
+            ApplicationDbContext db,
+            string name,
+            string description,
+            int menuCategoryId,
+            decimal price)
+        {
+            var item = await db.MenuItems.FirstOrDefaultAsync(x => x.Name == name);
+            if (item is null)
+            {
+                await db.MenuItems.AddAsync(new MenuItem
+                {
+                    Name = name,
+                    Description = description,
+                    MenuCategoryId = menuCategoryId,
+                    Price = price,
+                    IsAvailable = true
+                });
+
+                await db.SaveChangesAsync();
+                return;
+            }
+
+            item.Description = description;
+            item.MenuCategoryId = menuCategoryId;
+            item.Price = price;
+            item.IsAvailable = true;
+            await db.SaveChangesAsync();
+        }
+    }
+}
