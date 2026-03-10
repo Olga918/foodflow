@@ -1,10 +1,79 @@
+@model List<FoodFlow.Models.Order>
+@using FoodFlow.Enums
+
 @{
     ViewData["Title"] = "Kitchen Board";
 }
 
-<div class="container py-4">
-    <h1 class="mb-3">Kitchen Board</h1>
-    <p class="text-muted mb-0">
-        This section will contain order queue and status updates for cooks.
-    </p>
-</div>
+<h1 class="mb-3">Kitchen Board</h1>
+
+@if (TempData["KitchenMessage"] is string message)
+{
+    <div class="alert alert-info">@message</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-secondary">No active orders in queue.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var order in Model)
+        {
+            var badgeClass = order.Status switch
+            {
+                OrderStatus.New => "bg-warning text-dark",
+                OrderStatus.Cooking => "bg-primary",
+                OrderStatus.Ready => "bg-success",
+                _ => "bg-secondary"
+            };
+
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>Order #@order.Id</strong>
+                                <span class="badge @badgeClass ms-2">@order.Status</span>
+                            </div>
+                            <small class="text-muted">@order.CreatedAt.ToLocalTime()</small>
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">Type: @order.OrderType</small>
+                        </div>
+
+                        <ul class="mb-3">
+                            @foreach (var item in order.Items)
+                            {
+                                <li>@item.MenuItem?.Name x @item.Quantity</li>
+                            }
+                        </ul>
+
+                        <div class="d-flex gap-2">
+                            @if (order.Status == OrderStatus.New)
+                            {
+                                <form method="post" asp-action="UpdateStatus">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@order.Id" />
+                                    <input type="hidden" name="newStatus" value="@OrderStatus.Cooking" />
+                                    <button class="btn btn-sm btn-primary" type="submit">Start cooking</button>
+                                </form>
+                            }
+                            @if (order.Status == OrderStatus.Cooking)
+                            {
+                                <form method="post" asp-action="UpdateStatus">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@order.Id" />
+                                    <input type="hidden" name="newStatus" value="@OrderStatus.Ready" />
+                                    <button class="btn btn-sm btn-success" type="submit">Mark ready</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
