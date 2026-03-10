@@ -69,6 +69,61 @@ namespace FoodFlow.Controllers
                 return Challenge();
             }
 
+            var cartItemIds = cart.Select(x => x.MenuItemId).Distinct().ToList();
+            var recipeIngredients = await _context.RecipeIngredients
+                .Include(x => x.Product)
+                .Where(x => cartItemIds.Contains(x.MenuItemId))
+                .ToListAsync();
+
+            var requiredByProduct = new Dictionary<int, decimal>();
+            foreach (var cartItem in cart)
+            {
+                var recipeRows = recipeIngredients.Where(x => x.MenuItemId == cartItem.MenuItemId).ToList();
+                foreach (var row in recipeRows)
+                {
+                    var required = row.AmountPerDish * cartItem.Quantity;
+                    if (requiredByProduct.ContainsKey(row.ProductId))
+                    {
+                        requiredByProduct[row.ProductId] += required;
+                    }
+                    else
+                    {
+                        requiredByProduct[row.ProductId] = required;
+                    }
+                }
+            }
+
+            var productIds = requiredByProduct.Keys.ToList();
+            var products = await _context.Products
+                .Where(x => productIds.Contains(x.Id))
+                .ToListAsync();
+
+            var shortages = new List<string>();
+            var missingProductIds = productIds.Except(products.Select(x => x.Id)).ToList();
+            if (missingProductIds.Any())
+            {
+                shortages.Add("Some recipe ingredients are missing in stock catalog.");
+            }
+
+            foreach (var product in products)
+            {
+                var required = requiredByProduct[product.Id];
+                if (product.QuantityInStock < required)
+                {
+                    shortages.Add($"{product.Name}: required {required:0.###} {product.Unit}, available {product.QuantityInStock:0.###} {product.Unit}");
+                }
+            }
+
+            if (shortages.Any())
+            {
+                ModelState.AddModelError(string.Empty, "Not enough ingredients for this order:");
+                foreach (var shortage in shortages)
+                {
+                    ModelState.AddModelError(string.Empty, shortage);
+                }
+                return View(model);
+            }
+
             var order = new Order
             {
                 CustomerId = customerId,
@@ -86,6 +141,25 @@ namespace FoodFlow.Controllers
                     UnitPrice = x.UnitPrice
                 }).ToList()
             };
+
+            foreach (var product in products)
+            {
+                var required = requiredByProduct[product.Id];
+                if (required <= 0)
+                {
+                    continue;
+                }
+
+                product.QuantityInStock -= required;
+                _context.StockTransactions.Add(new StockTransaction
+                {
+                    ProductId = product.Id,
+                    Type = StockTransactionType.WriteOff,
+                    Quantity = required,
+                    Comment = "Auto write-off from checkout",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();

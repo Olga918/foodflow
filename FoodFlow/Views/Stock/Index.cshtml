@@ -1,10 +1,252 @@
+@model FoodFlow.ViewModels.StockIndexViewModel
+@using FoodFlow.Enums
+
 @{
     ViewData["Title"] = "Stock Management";
 }
 
-<div class="container py-4">
-    <h1 class="mb-3">Stock Management</h1>
-    <p class="text-muted mb-0">
-        This section will contain products, stock movements, and inventory control.
-    </p>
+<h1 class="mb-3">Stock Management</h1>
+
+@if (TempData["StockMessage"] is string ok)
+{
+    <div class="alert alert-success">@ok</div>
+}
+@if (TempData["StockError"] is string err)
+{
+    <div class="alert alert-danger">@err</div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Add product</h5>
+                <form method="post" asp-action="AddProduct">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input name="name" class="form-control" placeholder="Tomato" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unit</label>
+                        <input name="unit" class="form-control" placeholder="g / ml / pcs" value="g" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reorder level</label>
+                        <input name="reorderLevel" type="number" step="0.001" min="0" class="form-control" value="0" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Stock operation</h5>
+                <form method="post" asp-action="ApplyOperation">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <select name="productId" class="form-select">
+                            @foreach (var p in Model.Products)
+                            {
+                                <option value="@p.Id">@p.Name (@p.QuantityInStock @p.Unit)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Type</label>
+                            <select name="type" class="form-select">
+                                <option value="@StockTransactionType.Incoming">Incoming</option>
+                                <option value="@StockTransactionType.WriteOff">Write-off</option>
+                                <option value="@StockTransactionType.Adjustment">Adjustment</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Quantity</label>
+                            <input name="quantity" type="number" step="0.001" min="0" class="form-control" value="0" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Comment</label>
+                            <input name="comment" class="form-control" placeholder="Optional" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success mt-3">Apply operation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Recipe setup</h5>
+        <form method="post" asp-action="AddRecipeIngredient" class="row g-2 align-items-end">
+            @Html.AntiForgeryToken()
+            <div class="col-md-4">
+                <label class="form-label">Dish</label>
+                <select name="menuItemId" class="form-select">
+                    @foreach (var m in Model.MenuItems)
+                    {
+                        <option value="@m.Id">@m.Name (@m.Category?.Name)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Ingredient</label>
+                <select name="productId" class="form-select">
+                    @foreach (var p in Model.Products)
+                    {
+                        <option value="@p.Id">@p.Name (@p.Unit)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Amount/dish</label>
+                <input name="amountPerDish" type="number" step="0.001" min="0.001" class="form-control" value="1" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Recipe ingredients</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Dish</th>
+                        <th>Ingredient</th>
+                        <th class="text-end">Amount per dish</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.RecipeIngredients.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No recipe ingredients yet.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var ri in Model.RecipeIngredients)
+                        {
+                            <tr>
+                                <td>@ri.MenuItem?.Name</td>
+                                <td>@ri.Product?.Name (@ri.Product?.Unit)</td>
+                                <td class="text-end">@ri.AmountPerDish.ToString("0.###")</td>
+                                <td class="text-end">
+                                    <form method="post" asp-action="RemoveRecipeIngredient">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@ri.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Products</h5>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Unit</th>
+                        <th class="text-end">In Stock</th>
+                        <th class="text-end">Reorder Level</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Products.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No products yet.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var p in Model.Products)
+                        {
+                            var low = p.QuantityInStock <= p.ReorderLevel;
+                            <tr>
+                                <td>@p.Name</td>
+                                <td>@p.Unit</td>
+                                <td class="text-end">@p.QuantityInStock.ToString("0.###")</td>
+                                <td class="text-end">@p.ReorderLevel.ToString("0.###")</td>
+                                <td>
+                                    @if (low)
+                                    {
+                                        <span class="badge bg-warning text-dark">Low stock</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">OK</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Recent stock transactions</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Type</th>
+                        <th class="text-end">Quantity</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Transactions.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No transactions yet.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var t in Model.Transactions)
+                        {
+                            <tr>
+                                <td>@t.CreatedAt.ToLocalTime()</td>
+                                <td>@t.Product?.Name</td>
+                                <td>@t.Type</td>
+                                <td class="text-end">@t.Quantity.ToString("0.###")</td>
+                                <td>@(string.IsNullOrWhiteSpace(t.Comment) ? "-" : t.Comment)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
