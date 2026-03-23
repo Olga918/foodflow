@@ -19,6 +19,10 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 })
 .AddRoles<IdentityRole>() // роли пригодятся (Admin/Cook/etc.)
 .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.AccessDeniedPath = "/Home/AccessDenied";
+});
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession(options =>
