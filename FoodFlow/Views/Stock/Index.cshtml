@@ -5,7 +5,8 @@
     ViewData["Title"] = "Stock Management";
 }
 
-<h1 class="mb-3">Stock Management</h1>
+<h1 class="ff-title">Stock Management</h1>
+<p class="ff-subtitle mb-3">Manage products, recipe ingredients, and stock operations.</p>
 
 @if (TempData["StockMessage"] is string ok)
 {
@@ -18,7 +19,7 @@
 
 <div class="row g-3 mb-4">
     <div class="col-lg-5">
-        <div class="card shadow-sm h-100">
+        <div class="ff-surface-card h-100">
             <div class="card-body">
                 <h5 class="card-title mb-3">Add product</h5>
                 <form method="post" asp-action="AddProduct">
@@ -42,7 +43,7 @@
     </div>
 
     <div class="col-lg-7">
-        <div class="card shadow-sm h-100">
+        <div class="ff-surface-card h-100">
             <div class="card-body">
                 <h5 class="card-title mb-3">Stock operation</h5>
                 <form method="post" asp-action="ApplyOperation">
@@ -83,7 +84,7 @@
     </div>
 </div>
 
-<div class="card shadow-sm mb-4">
+<div class="ff-surface-card mb-4">
     <div class="card-body">
         <h5 class="card-title mb-3">Recipe setup</h5>
         <form method="post" asp-action="AddRecipeIngredient" class="row g-2 align-items-end">
@@ -117,7 +118,7 @@
     </div>
 </div>
 
-<div class="card shadow-sm mb-4">
+<div class="ff-surface-card mb-4">
     <div class="card-body">
         <h5 class="card-title mb-3">Recipe ingredients</h5>
         <div class="table-responsive">
@@ -161,7 +162,7 @@
     </div>
 </div>
 
-<div class="card shadow-sm mb-4">
+<div class="ff-surface-card mb-4">
     <div class="card-body">
         <h5 class="card-title mb-3">Products</h5>
         <div class="table-responsive">
@@ -211,7 +212,7 @@
     </div>
 </div>
 
-<div class="card shadow-sm">
+<div class="ff-surface-card">
     <div class="card-body">
         <h5 class="card-title mb-3">Recent stock transactions</h5>
         <div class="table-responsive">
