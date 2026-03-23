@@ -6,6 +6,6 @@ namespace FoodFlow.ViewModels
     {
         public int? SelectedCategoryId { get; set; }
         public List<MenuCategory> Categories { get; set; } = new();
-        public List<MenuItem> Items { get; set; } = new();
+        public List<MenuItemListRow> Items { get; set; } = new();
     }
 }

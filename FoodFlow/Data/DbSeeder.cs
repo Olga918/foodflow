@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FoodFlow.Data
 {
-    public static class DbSeeder
+    public static partial class DbSeeder
     {
         public static async Task SeedAsync(IServiceProvider services)
         {
@@ -289,6 +289,8 @@ namespace FoodFlow.Data
                 "Clear broth with chicken, noodles and vegetables.",
                 soupsCategoryId,
                 5.99m);
+
+            await SeedCatalogStockAndRecipesAsync(db);
         }
 
         private static async Task EnsureUserWithRoleAsync(

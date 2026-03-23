@@ -6,7 +6,10 @@
 }
 
 <h1 class="ff-title">Kitchen Board</h1>
-<p class="ff-subtitle mb-3">Track active orders and update cooking status.</p>
+<p class="ff-subtitle mb-3">
+    Track active orders and update cooking status.
+    <a class="ms-2" asp-action="Prepare">Line prep (warehouse → portions)</a>
+</p>
 
 @if (TempData["KitchenMessage"] is string message)
 {

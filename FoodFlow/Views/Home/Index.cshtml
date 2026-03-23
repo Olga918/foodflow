@@ -39,7 +39,7 @@
     <div class="d-flex justify-content-between align-items-end mb-3">
         <div>
             <h2 class="ff-title mb-1">Recommended Dishes</h2>
-            <p class="ff-subtitle mb-0">Popular menu highlights ready to order.</p>
+            <p class="ff-subtitle mb-0">Popular picks from the menu. “Not ready” means no portions on the kitchen line yet — the cook tops them up under <strong>Kitchen → Line prep</strong> (from warehouse stock).</p>
         </div>
         <a class="btn btn-outline-primary" asp-controller="Menu" asp-action="Index">View full menu</a>
     </div>
@@ -57,18 +57,33 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="card-title mb-0">@item.Name</h5>
-                            <span class="ff-badge available">Available</span>
+                            @if (item.CanAddToCart)
+                            {
+                                <span class="ff-badge available">Available</span>
+                            }
+                            else
+                            {
+                                <span class="ff-badge unavailable">Not ready</span>
+                            }
                         </div>
-                        <p class="text-muted small mb-2">@item.Category?.Name</p>
+                        <p class="text-muted small mb-2">@item.CategoryName</p>
                         <p class="card-text flex-grow-1">@item.Description</p>
+                        <p class="small text-muted mb-2">Line: <strong>@item.KitchenPortions</strong> portion(s)</p>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <span class="ff-price">$@item.Price.ToString("0.00")</span>
-                            <form method="post" asp-controller="Cart" asp-action="Add" class="d-flex gap-2">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="menuItemId" value="@item.Id" />
-                                <input type="hidden" name="quantity" value="1" />
-                                <button type="submit" class="btn btn-sm btn-primary">Add</button>
-                            </form>
+                            @if (item.CanAddToCart)
+                            {
+                                <form method="post" asp-controller="Cart" asp-action="Add" class="d-flex gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="menuItemId" value="@item.Id" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="small text-muted">See menu</span>
+                            }
                         </div>
                     </div>
                 </div>

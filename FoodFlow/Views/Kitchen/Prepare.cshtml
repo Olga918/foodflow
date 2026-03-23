@@ -1,0 +1,68 @@
+@model FoodFlow.ViewModels.KitchenPrepareViewModel
+@{
+    ViewData["Title"] = "Prepare line stock";
+}
+
+<h1 class="ff-title">Prepare line stock</h1>
+<p class="ff-subtitle mb-3">
+    Write-off happens here: warehouse ingredients are consumed and portions appear on the kitchen line for clients to order.
+    Clients no longer deduct raw stock at checkout — only prepared portions.
+</p>
+
+@if (TempData["KitchenMessage"] is string message)
+{
+    <div class="alert alert-info">@message</div>
+}
+
+<p class="mb-3">
+    <a class="btn btn-outline-secondary btn-sm" asp-action="Index">← Kitchen board (orders)</a>
+</p>
+
+<div class="table-responsive ff-surface-card">
+    <table class="table table-striped align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Dish</th>
+                <th>Category</th>
+                <th>Recipe lines</th>
+                <th>Portions on line</th>
+                <th style="min-width: 220px;">Prepare</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model.Rows)
+            {
+                <tr>
+                    <td><strong>@row.Name</strong></td>
+                    <td>@(row.CategoryName ?? "—")</td>
+                    <td>
+                        @if (row.RecipeLineCount == 0)
+                        {
+                            <span class="text-danger">None — add in Stock</span>
+                        }
+                        else
+                        {
+                            <span class="text-success">@row.RecipeLineCount</span>
+                        }
+                    </td>
+                    <td><span class="badge bg-secondary">@row.KitchenPortions</span></td>
+                    <td>
+                        @if (row.CanPrepare)
+                        {
+                            <form method="post" asp-action="Prepare" class="d-flex flex-wrap gap-2 align-items-center">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="menuItemId" value="@row.MenuItemId" />
+                                <input type="number" name="portions" value="5" min="1" max="500" class="form-control form-control-sm" style="width: 88px;" />
+                                <button type="submit" class="btn btn-sm btn-primary">Prepare</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Configure recipe in Stock first.</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

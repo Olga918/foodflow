@@ -16,20 +16,38 @@ namespace FoodFlow.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var vm = new HomeIndexViewModel
-            {
-                RecommendedDishes = _context.MenuItems
-                    .AsNoTracking()
-                    .Include(x => x.Category)
-                    .Where(x => x.IsAvailable)
-                    .OrderByDescending(x => x.Price)
-                    .ThenBy(x => x.Name)
-                    .Take(6)
-                    .ToList()
-            };
+            var items = await _context.MenuItems
+                .AsNoTracking()
+                .Include(x => x.Category)
+                .Where(x => x.IsAvailable)
+                .OrderByDescending(x => x.Price)
+                .ThenBy(x => x.Name)
+                .Take(6)
+                .ToListAsync();
 
+            var itemIds = items.Select(x => x.Id).ToList();
+            var recipeCounts = await _context.RecipeIngredients
+                .AsNoTracking()
+                .Where(x => itemIds.Contains(x.MenuItemId))
+                .GroupBy(x => x.MenuItemId)
+                .Select(g => new { MenuItemId = g.Key, Cnt = g.Count() })
+                .ToDictionaryAsync(x => x.MenuItemId, x => x.Cnt);
+
+            var rows = items.Select(i => new MenuItemListRow
+            {
+                Id = i.Id,
+                Name = i.Name,
+                Description = i.Description,
+                Price = i.Price,
+                IsAvailable = i.IsAvailable,
+                KitchenPortions = i.KitchenPortions,
+                RecipeLineCount = recipeCounts.GetValueOrDefault(i.Id),
+                CategoryName = i.Category?.Name
+            }).ToList();
+
+            var vm = new HomeIndexViewModel { RecommendedDishes = rows };
             return View(vm);
         }
 

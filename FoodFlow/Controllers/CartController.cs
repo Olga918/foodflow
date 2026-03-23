@@ -69,58 +69,67 @@ namespace FoodFlow.Controllers
                 return Challenge();
             }
 
-            var cartItemIds = cart.Select(x => x.MenuItemId).Distinct().ToList();
+            var qtyByMenuItem = cart
+                .GroupBy(x => x.MenuItemId)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
+
+            var menuItemIds = qtyByMenuItem.Keys.ToList();
+            var menuItems = await _context.MenuItems
+                .Where(x => menuItemIds.Contains(x.Id))
+                .ToListAsync();
+            var menuById = menuItems.ToDictionary(x => x.Id);
+
             var recipeIngredients = await _context.RecipeIngredients
-                .Include(x => x.Product)
-                .Where(x => cartItemIds.Contains(x.MenuItemId))
+                .Where(x => menuItemIds.Contains(x.MenuItemId))
                 .ToListAsync();
 
-            var requiredByProduct = new Dictionary<int, decimal>();
-            foreach (var cartItem in cart)
+            var missingRecipeNames = new List<string>();
+            var portionShortages = new List<string>();
+
+            foreach (var (menuItemId, qty) in qtyByMenuItem)
             {
-                var recipeRows = recipeIngredients.Where(x => x.MenuItemId == cartItem.MenuItemId).ToList();
-                foreach (var row in recipeRows)
+                var recipeRows = recipeIngredients.Where(x => x.MenuItemId == menuItemId).ToList();
+                if (!recipeRows.Any())
                 {
-                    var required = row.AmountPerDish * cartItem.Quantity;
-                    if (requiredByProduct.ContainsKey(row.ProductId))
-                    {
-                        requiredByProduct[row.ProductId] += required;
-                    }
-                    else
-                    {
-                        requiredByProduct[row.ProductId] = required;
-                    }
+                    var name = cart.First(x => x.MenuItemId == menuItemId).Name;
+                    missingRecipeNames.Add(name);
+                    continue;
+                }
+
+                if (!menuById.TryGetValue(menuItemId, out var mi))
+                {
+                    portionShortages.Add($"Dish id {menuItemId} is no longer on the menu.");
+                    continue;
+                }
+
+                if (mi.KitchenPortions < qty)
+                {
+                    portionShortages.Add(
+                        $"{mi.Name}: need {qty} portion(s) ready on the kitchen line, have {mi.KitchenPortions}. Ask the cook to prepare more from Stock ingredients.");
                 }
             }
 
-            var productIds = requiredByProduct.Keys.ToList();
-            var products = await _context.Products
-                .Where(x => productIds.Contains(x.Id))
-                .ToListAsync();
-
-            var shortages = new List<string>();
-            var missingProductIds = productIds.Except(products.Select(x => x.Id)).ToList();
-            if (missingProductIds.Any())
+            if (missingRecipeNames.Any())
             {
-                shortages.Add("Some recipe ingredients are missing in stock catalog.");
-            }
-
-            foreach (var product in products)
-            {
-                var required = requiredByProduct[product.Id];
-                if (product.QuantityInStock < required)
+                ModelState.AddModelError(string.Empty,
+                    "These dishes have no recipe in the system — ordering is blocked until the storekeeper adds ingredients per portion (Stock):");
+                foreach (var n in missingRecipeNames.Distinct().OrderBy(x => x))
                 {
-                    shortages.Add($"{product.Name}: required {required:0.###} {product.Unit}, available {product.QuantityInStock:0.###} {product.Unit}");
+                    ModelState.AddModelError(string.Empty, n);
                 }
             }
 
-            if (shortages.Any())
+            if (portionShortages.Any())
             {
-                ModelState.AddModelError(string.Empty, "Not enough ingredients for this order:");
-                foreach (var shortage in shortages)
+                ModelState.AddModelError(string.Empty, "Not enough prepared portions on the kitchen line:");
+                foreach (var line in portionShortages)
                 {
-                    ModelState.AddModelError(string.Empty, shortage);
+                    ModelState.AddModelError(string.Empty, line);
                 }
+            }
+
+            if (!ModelState.IsValid)
+            {
                 return View(model);
             }
 
@@ -142,23 +151,9 @@ namespace FoodFlow.Controllers
                 }).ToList()
             };
 
-            foreach (var product in products)
+            foreach (var (menuItemId, qty) in qtyByMenuItem)
             {
-                var required = requiredByProduct[product.Id];
-                if (required <= 0)
-                {
-                    continue;
-                }
-
-                product.QuantityInStock -= required;
-                _context.StockTransactions.Add(new StockTransaction
-                {
-                    ProductId = product.Id,
-                    Type = StockTransactionType.WriteOff,
-                    Quantity = required,
-                    Comment = "Auto write-off from checkout",
-                    CreatedAt = DateTime.UtcNow
-                });
+                menuById[menuItemId].KitchenPortions -= qty;
             }
 
             _context.Orders.Add(order);
@@ -205,17 +200,31 @@ namespace FoodFlow.Controllers
             }
 
             var menuItem = await _context.MenuItems
-                .Where(x => x.Id == menuItemId && x.IsAvailable)
-                .Select(x => new { x.Id, x.Name, x.Price })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.Id == menuItemId && x.IsAvailable);
 
             if (menuItem is null)
             {
                 return NotFound();
             }
 
+            var recipeLines = await _context.RecipeIngredients.CountAsync(x => x.MenuItemId == menuItemId);
+            if (recipeLines == 0)
+            {
+                TempData["CartMessage"] =
+                    $"\"{menuItem.Name}\" cannot be ordered yet: no recipe (ingredients per portion). The storekeeper must configure it in Stock.";
+                return RedirectToAction("Index", "Menu");
+            }
+
             var cart = GetCart();
             var existing = cart.FirstOrDefault(x => x.MenuItemId == menuItem.Id);
+            var newTotal = (existing?.Quantity ?? 0) + quantity;
+            if (newTotal > menuItem.KitchenPortions)
+            {
+                TempData["CartMessage"] =
+                    $"Only {menuItem.KitchenPortions} portion(s) of \"{menuItem.Name}\" are ready on the kitchen line. Reduce quantity or wait for the cook to prepare more.";
+                return RedirectToAction("Index", "Menu");
+            }
+
             if (existing is null)
             {
                 cart.Add(new CartItemViewModel

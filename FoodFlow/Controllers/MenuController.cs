@@ -28,11 +28,31 @@ namespace FoodFlow.Controllers
                 query = query.Where(x => x.MenuCategoryId == categoryId.Value);
             }
 
+            var items = await query.ToListAsync();
+            var itemIds = items.Select(x => x.Id).ToList();
+            var recipeCounts = await _context.RecipeIngredients
+                .Where(x => itemIds.Contains(x.MenuItemId))
+                .GroupBy(x => x.MenuItemId)
+                .Select(g => new { MenuItemId = g.Key, Cnt = g.Count() })
+                .ToDictionaryAsync(x => x.MenuItemId, x => x.Cnt);
+
+            var rows = items.Select(i => new MenuItemListRow
+            {
+                Id = i.Id,
+                Name = i.Name,
+                Description = i.Description,
+                Price = i.Price,
+                IsAvailable = i.IsAvailable,
+                KitchenPortions = i.KitchenPortions,
+                RecipeLineCount = recipeCounts.GetValueOrDefault(i.Id),
+                CategoryName = i.Category?.Name
+            }).ToList();
+
             var vm = new MenuIndexViewModel
             {
                 SelectedCategoryId = categoryId,
                 Categories = categories,
-                Items = await query.ToListAsync()
+                Items = rows
             };
 
             return View(vm);

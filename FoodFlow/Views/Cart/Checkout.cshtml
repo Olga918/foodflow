@@ -7,10 +7,13 @@
 
 <h2 class="ff-title">Checkout</h2>
 <p class="ff-subtitle mb-3">Enter your order details and confirm.</p>
+<p class="small text-muted mb-3">
+    Orders use prepared portions from the kitchen line (cook prepares them from warehouse stock). Raw ingredients are not deducted here.
+</p>
 
 <form method="post" asp-action="Checkout" class="ff-surface-card p-3 p-md-4">
     @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
     <div class="mb-3">
         <label asp-for="OrderType" class="form-label"></label>

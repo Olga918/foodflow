@@ -27,7 +27,8 @@ namespace FoodFlow.Controllers
                     .ToListAsync(),
                 MenuItems = await _context.MenuItems
                     .Include(x => x.Category)
-                    .OrderBy(x => x.Name)
+                    .OrderBy(x => x.Category != null ? x.Category.SortOrder : 999)
+                    .ThenBy(x => x.Name)
                     .ToListAsync(),
                 RecipeIngredients = await _context.RecipeIngredients
                     .Include(x => x.MenuItem)
