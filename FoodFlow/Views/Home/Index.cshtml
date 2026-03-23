@@ -1,6 +1,7 @@
 @{
     ViewData["Title"] = "Home";
 }
+@model FoodFlow.ViewModels.HomeIndexViewModel
 
 <div class="ff-hero p-4 p-md-5 mb-4">
     <h1 class="display-5 fw-bold mb-3">Welcome to FoodFlow</h1>
@@ -33,3 +34,45 @@
         </div>
     </div>
 </div>
+
+<section class="mt-5">
+    <div class="d-flex justify-content-between align-items-end mb-3">
+        <div>
+            <h2 class="ff-title mb-1">Recommended Dishes</h2>
+            <p class="ff-subtitle mb-0">Popular menu highlights ready to order.</p>
+        </div>
+        <a class="btn btn-outline-primary" asp-controller="Menu" asp-action="Index">View full menu</a>
+    </div>
+
+    @if (!Model.RecommendedDishes.Any())
+    {
+        <div class="alert alert-info">No dishes available right now.</div>
+    }
+    else
+    {
+        <div class="ff-menu-grid">
+            @foreach (var item in Model.RecommendedDishes)
+            {
+                <div class="ff-card card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">@item.Name</h5>
+                            <span class="ff-badge available">Available</span>
+                        </div>
+                        <p class="text-muted small mb-2">@item.Category?.Name</p>
+                        <p class="card-text flex-grow-1">@item.Description</p>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="ff-price">$@item.Price.ToString("0.00")</span>
+                            <form method="post" asp-controller="Cart" asp-action="Add" class="d-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="menuItemId" value="@item.Id" />
+                                <input type="hidden" name="quantity" value="1" />
+                                <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>
