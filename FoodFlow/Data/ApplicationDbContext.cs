@@ -18,6 +18,8 @@ namespace FoodFlow.Data
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<RecipeIngredient> RecipeIngredients => Set<RecipeIngredient>();
+        public DbSet<PurchaseList> PurchaseLists => Set<PurchaseList>();
+        public DbSet<PurchaseListLine> PurchaseListLines => Set<PurchaseListLine>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -55,6 +57,20 @@ namespace FoodFlow.Data
                 .HasMany(x => x.Items)
                 .WithOne(x => x.Order)
                 .HasForeignKey(x => x.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<PurchaseListLine>()
+                .Property(x => x.SuggestedQuantity)
+                .HasPrecision(12, 3);
+
+            builder.Entity<PurchaseListLine>()
+                .Property(x => x.ReceivedQuantity)
+                .HasPrecision(12, 3);
+
+            builder.Entity<PurchaseList>()
+                .HasMany(x => x.Lines)
+                .WithOne(x => x.PurchaseList)
+                .HasForeignKey(x => x.PurchaseListId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

@@ -1,0 +1,86 @@
+@model List<FoodFlow.ViewModels.PurchaseListSummaryRow>
+@using FoodFlow.Enums
+
+@{
+    ViewData["Title"] = "Purchase lists";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="ff-title mb-1">Purchase lists</h1>
+            <p class="ff-subtitle mb-0">Admin procurement: what to buy from low-stock items and recording deliveries to warehouse.</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="Index">← Admin</a>
+    </div>
+
+    @if (TempData["PurchaseMessage"] is string ok)
+    {
+        <div class="alert alert-success">@ok</div>
+    }
+    @if (TempData["PurchaseError"] is string err)
+    {
+        <div class="alert alert-danger">@err</div>
+    }
+
+    <div class="ff-surface-card p-3 mb-4">
+        <form method="post" asp-action="CreateFromLowStock" class="d-flex flex-wrap align-items-center gap-3">
+            @Html.AntiForgeryToken()
+            <div>
+                <strong>New list from low stock</strong>
+                <p class="small text-muted mb-0">Adds every product where <code>In stock ≤ Reorder level</code> with a suggested order quantity.</p>
+            </div>
+            <button type="submit" class="btn btn-primary ms-auto">Generate purchase list</button>
+        </form>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <p class="text-muted">No purchase lists yet. Use the button above after restocks drop below reorder levels.</p>
+    }
+    else
+    {
+        <div class="table-responsive ff-surface-card">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Lines</th>
+                        <th class="text-end">Suggested Σ</th>
+                        <th class="text-end">Received Σ</th>
+                        <th>Note</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td>@row.Id</td>
+                            <td>@row.CreatedAt.ToLocalTime()</td>
+                            <td>
+                                @if (row.Status == PurchaseListStatus.Completed)
+                                {
+                                    <span class="badge bg-success">Completed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Open</span>
+                                }
+                            </td>
+                            <td>@row.LinesCount</td>
+                            <td class="text-end">@row.TotalSuggested.ToString("0.###")</td>
+                            <td class="text-end">@row.TotalReceived.ToString("0.###")</td>
+                            <td class="small text-muted">@row.Note</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@row.Id">Open</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

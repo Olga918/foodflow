@@ -1,0 +1,92 @@
+@model FoodFlow.ViewModels.PurchaseListDetailViewModel
+@using FoodFlow.Enums
+
+@{
+    ViewData["Title"] = $"Purchase list #{Model.Id}";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+            <h1 class="ff-title mb-1">Purchase list #@Model.Id</h1>
+            <p class="ff-subtitle mb-0">@Model.CreatedAt.ToLocalTime() · @(Model.Status == PurchaseListStatus.Completed ? "Completed" : "Open")</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Note))
+            {
+                <p class="small text-muted mb-0">@Model.Note</p>
+            }
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" asp-action="Index">All lists</a>
+        </div>
+    </div>
+
+    @if (TempData["PurchaseMessage"] is string ok)
+    {
+        <div class="alert alert-success">@ok</div>
+    }
+    @if (TempData["PurchaseError"] is string err)
+    {
+        <div class="alert alert-danger">@err</div>
+    }
+
+    <div class="table-responsive ff-surface-card mb-3">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th class="text-end">Current stock</th>
+                    <th class="text-end">Suggested buy</th>
+                    <th class="text-end">Received</th>
+                    <th class="text-end">Remaining</th>
+                    <th style="min-width: 220px;">Receive to warehouse</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in Model.Lines)
+                {
+                    <tr>
+                        <td><strong>@line.ProductName</strong> <span class="text-muted">(@line.Unit)</span></td>
+                        <td class="text-end font-monospace">@line.CurrentStock.ToString("0.###")</td>
+                        <td class="text-end font-monospace">@line.SuggestedQuantity.ToString("0.###")</td>
+                        <td class="text-end font-monospace">@line.ReceivedQuantity.ToString("0.###")</td>
+                        <td class="text-end font-monospace">@line.Remaining.ToString("0.###")</td>
+                        <td>
+                            @if (Model.Status == PurchaseListStatus.Open && line.Remaining > 0)
+                            {
+                                <form method="post" asp-action="Receive" class="d-flex flex-wrap gap-2 align-items-center">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="listId" value="@Model.Id" />
+                                    <input type="hidden" name="lineId" value="@line.LineId" />
+                                    <input type="number" name="quantity" value="@line.Remaining.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" step="0.001" min="0.001" max="@line.Remaining.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" class="form-control form-control-sm" style="width: 110px;" />
+                                    <button type="submit" class="btn btn-sm btn-success">Receive</button>
+                                </form>
+                            }
+                            else if (line.Remaining <= 0)
+                            {
+                                <span class="text-success small">Done</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Status == PurchaseListStatus.Open && Model.Lines.All(x => x.Remaining <= 0))
+    {
+        <form method="post" asp-action="Complete" class="d-inline" onsubmit="return confirm('Mark this list as completed?');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-primary">Mark list completed</button>
+        </form>
+    }
+
+    <p class="small text-muted mt-3 mb-0">
+        Receiving updates <strong>warehouse stock</strong> and appends an <strong>Incoming</strong> transaction (same as Stock, with comment referencing this list).
+        Storekeeper can still use <strong>Stock</strong> for extra movements.
+    </p>
+</div>
