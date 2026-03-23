@@ -1,6 +1,7 @@
 @model FoodFlow.ViewModels.MenuIndexViewModel
 
-<h2 class="mb-3">Menu</h2>
+<h2 class="ff-title">Menu</h2>
+<p class="ff-subtitle mb-3">Choose your favorite dishes and add them to cart.</p>
 
 <div class="mb-3 d-flex flex-wrap gap-2">
     @if (Model.SelectedCategoryId is null)
@@ -31,38 +32,44 @@
     }
 </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Description</th>
-            <th>Price</th>
-            <th>Available</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-warning">No dishes found for selected category.</div>
+}
+else
+{
+    <div class="ff-menu-grid">
         @foreach (var item in Model.Items)
         {
-            <tr>
-                <td>@item.Name</td>
-                <td>@item.Category?.Name</td>
-                <td>@item.Description</td>
-                <td>@item.Price.ToString("0.00")</td>
-                <td>@(item.IsAvailable ? "Yes" : "No")</td>
-                <td>
-                    @if (item.IsAvailable)
-                    {
-                        <form method="post" asp-controller="Cart" asp-action="Add" class="d-flex gap-2">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="menuItemId" value="@item.Id" />
-                            <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm" style="max-width: 80px;" />
-                            <button type="submit" class="btn btn-sm btn-primary">Add</button>
-                        </form>
-                    }
-                </td>
-            </tr>
+            <div class="ff-card card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">@item.Name</h5>
+                        @if (item.IsAvailable)
+                        {
+                            <span class="ff-badge available">Available</span>
+                        }
+                        else
+                        {
+                            <span class="ff-badge unavailable">Unavailable</span>
+                        }
+                    </div>
+                    <p class="text-muted small mb-2">@item.Category?.Name</p>
+                    <p class="card-text flex-grow-1">@item.Description</p>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="ff-price">$@item.Price.ToString("0.00")</span>
+                        @if (item.IsAvailable)
+                        {
+                            <form method="post" asp-controller="Cart" asp-action="Add" class="d-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="menuItemId" value="@item.Id" />
+                                <input type="number" name="quantity" value="1" min="1" class="form-control form-control-sm" style="width: 72px;" />
+                                <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+}

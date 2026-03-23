@@ -73,6 +73,9 @@ namespace FoodFlow.Data
             var saladsCategoryId = await EnsureCategoryAsync(db, "Salads", 4);
             var drinksCategoryId = await EnsureCategoryAsync(db, "Drinks", 5);
             var dessertsCategoryId = await EnsureCategoryAsync(db, "Desserts", 6);
+            var appetizersCategoryId = await EnsureCategoryAsync(db, "Appetizers", 7);
+            var seafoodCategoryId = await EnsureCategoryAsync(db, "Seafood", 8);
+            var soupsCategoryId = await EnsureCategoryAsync(db, "Soups", 9);
 
             await EnsureMenuItemAsync(
                 db,
@@ -92,6 +95,24 @@ namespace FoodFlow.Data
                 "Chicken, mozzarella, red onion and BBQ sauce.",
                 pizzaCategoryId,
                 11.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Four Cheese Pizza",
+                "Mozzarella, parmesan, gorgonzola and cheddar.",
+                pizzaCategoryId,
+                12.49m);
+            await EnsureMenuItemAsync(
+                db,
+                "Vegetarian Pizza",
+                "Tomato sauce, mozzarella, bell pepper, olives and mushrooms.",
+                pizzaCategoryId,
+                10.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Diablo Pizza",
+                "Spicy salami, jalapeno, red onion and chili flakes.",
+                pizzaCategoryId,
+                11.79m);
 
             await EnsureMenuItemAsync(
                 db,
@@ -105,6 +126,18 @@ namespace FoodFlow.Data
                 "Double beef patty, cheddar and pickles.",
                 burgerCategoryId,
                 9.29m);
+            await EnsureMenuItemAsync(
+                db,
+                "Chicken Burger",
+                "Crispy chicken, iceberg lettuce and garlic sauce.",
+                burgerCategoryId,
+                8.29m);
+            await EnsureMenuItemAsync(
+                db,
+                "Mushroom Burger",
+                "Beef patty, sauteed mushrooms, cheddar and truffle mayo.",
+                burgerCategoryId,
+                9.89m);
 
             await EnsureMenuItemAsync(
                 db,
@@ -118,6 +151,18 @@ namespace FoodFlow.Data
                 "Traditional meat sauce with parmesan.",
                 pastaCategoryId,
                 8.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Alfredo",
+                "Creamy alfredo sauce with chicken and parmesan.",
+                pastaCategoryId,
+                9.49m);
+            await EnsureMenuItemAsync(
+                db,
+                "Pesto Pasta",
+                "Basil pesto, cherry tomato and parmesan cheese.",
+                pastaCategoryId,
+                8.79m);
 
             await EnsureMenuItemAsync(
                 db,
@@ -131,6 +176,12 @@ namespace FoodFlow.Data
                 "Tomato, cucumber, feta, olives and olive oil.",
                 saladsCategoryId,
                 6.49m);
+            await EnsureMenuItemAsync(
+                db,
+                "Tuna Salad",
+                "Fresh greens, tuna, eggs, cherry tomato and lemon dressing.",
+                saladsCategoryId,
+                7.29m);
 
             await EnsureMenuItemAsync(
                 db,
@@ -150,6 +201,24 @@ namespace FoodFlow.Data
                 "Hot black coffee.",
                 drinksCategoryId,
                 2.29m);
+            await EnsureMenuItemAsync(
+                db,
+                "Cappuccino",
+                "Espresso with steamed milk and foam.",
+                drinksCategoryId,
+                2.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Lemonade",
+                "House lemonade with fresh mint and lemon.",
+                drinksCategoryId,
+                2.59m);
+            await EnsureMenuItemAsync(
+                db,
+                "Still Water",
+                "0.5L bottled still water.",
+                drinksCategoryId,
+                1.49m);
 
             await EnsureMenuItemAsync(
                 db,
@@ -163,6 +232,63 @@ namespace FoodFlow.Data
                 "Warm brownie with chocolate sauce.",
                 dessertsCategoryId,
                 4.49m);
+            await EnsureMenuItemAsync(
+                db,
+                "Tiramisu",
+                "Classic Italian dessert with mascarpone and coffee.",
+                dessertsCategoryId,
+                5.29m);
+            await EnsureMenuItemAsync(
+                db,
+                "Apple Pie",
+                "Homemade apple pie with cinnamon and vanilla sauce.",
+                dessertsCategoryId,
+                4.79m);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Garlic Bread",
+                "Baked baguette with garlic butter and herbs.",
+                appetizersCategoryId,
+                3.29m);
+            await EnsureMenuItemAsync(
+                db,
+                "Chicken Wings",
+                "Spicy glazed chicken wings with dip sauce.",
+                appetizersCategoryId,
+                6.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Mozzarella Sticks",
+                "Fried mozzarella sticks with tomato dip.",
+                appetizersCategoryId,
+                5.49m);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Grilled Salmon",
+                "Salmon fillet with lemon butter and herbs.",
+                seafoodCategoryId,
+                14.99m);
+            await EnsureMenuItemAsync(
+                db,
+                "Shrimp Pasta",
+                "Pasta with shrimp, garlic and light cream sauce.",
+                seafoodCategoryId,
+                12.79m);
+
+            await EnsureMenuItemAsync(
+                db,
+                "Tom Yum",
+                "Spicy Thai soup with shrimp and mushrooms.",
+                soupsCategoryId,
+                7.49m);
+            await EnsureMenuItemAsync(
+                db,
+                "Chicken Noodle Soup",
+                "Clear broth with chicken, noodles and vegetables.",
+                soupsCategoryId,
+                5.99m);
         }
 
         private static async Task EnsureUserWithRoleAsync(

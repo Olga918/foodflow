@@ -1,8 +1,35 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="ff-hero p-4 p-md-5 mb-4">
+    <h1 class="display-5 fw-bold mb-3">Welcome to FoodFlow</h1>
+    <p class="lead mb-4">
+        Restaurant management with online ordering, kitchen workflow, stock tracking, and admin reports in one system.
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary btn-lg" asp-controller="Menu" asp-action="Index">View menu</a>
+        <a class="btn btn-outline-primary btn-lg" asp-controller="Cart" asp-action="Index">Go to cart</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="ff-surface-card p-3 h-100">
+            <h5 class="mb-2">Fast ordering</h5>
+            <p class="mb-0 text-muted">Clients place orders in a few clicks from menu to checkout.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="ff-surface-card p-3 h-100">
+            <h5 class="mb-2">Kitchen workflow</h5>
+            <p class="mb-0 text-muted">Cooks process orders with clear status transitions.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="ff-surface-card p-3 h-100">
+            <h5 class="mb-2">Live analytics</h5>
+            <p class="mb-0 text-muted">Admins track revenue, top dishes, and stock levels.</p>
+        </div>
+    </div>
 </div>

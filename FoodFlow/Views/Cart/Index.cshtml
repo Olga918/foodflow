@@ -5,7 +5,8 @@
     var total = Model.Sum(x => x.LineTotal);
 }
 
-<h2 class="mb-3">Cart</h2>
+<h2 class="ff-title">Cart</h2>
+<p class="ff-subtitle mb-3">Review your order before checkout.</p>
 
 @if (TempData["CartMessage"] is string message)
 {
@@ -14,54 +15,57 @@
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info">Your cart is empty.</div>
-    <a class="btn btn-primary" asp-controller="Menu" asp-action="Index">Go to Menu</a>
+    <div class="ff-surface-card p-4">
+        <p class="mb-3">Your cart is empty.</p>
+        <a class="btn btn-primary" asp-controller="Menu" asp-action="Index">Go to Menu</a>
+    </div>
 }
 else
 {
-    <table class="table table-striped align-middle">
-        <thead>
-            <tr>
-                <th>Dish</th>
-                <th class="text-end">Price</th>
-                <th class="text-end">Qty</th>
-                <th class="text-end">Total</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.Name</td>
-                    <td class="text-end">@item.UnitPrice.ToString("0.00")</td>
-                    <td class="text-end">@item.Quantity</td>
-                    <td class="text-end">@item.LineTotal.ToString("0.00")</td>
-                    <td class="text-end">
-                        <form method="post" asp-controller="Cart" asp-action="Remove">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="menuItemId" value="@item.MenuItemId" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="3" class="text-end">Grand total</th>
-                <th class="text-end">@total.ToString("0.00")</th>
-                <th></th>
-            </tr>
-        </tfoot>
-    </table>
+    <div class="ff-surface-card p-3 p-md-4">
+        <div class="table-responsive">
+            <table class="table align-middle mb-3">
+                <thead>
+                    <tr>
+                        <th>Dish</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td class="text-end">$@item.UnitPrice.ToString("0.00")</td>
+                            <td class="text-end">@item.Quantity</td>
+                            <td class="text-end">$@item.LineTotal.ToString("0.00")</td>
+                            <td class="text-end">
+                                <form method="post" asp-controller="Cart" asp-action="Remove">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="menuItemId" value="@item.MenuItemId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
-    <div class="d-flex gap-2">
-        <a class="btn btn-primary" asp-controller="Menu" asp-action="Index">Add more dishes</a>
-        <a class="btn btn-success" asp-controller="Cart" asp-action="Checkout">Checkout</a>
-        <form method="post" asp-controller="Cart" asp-action="Clear">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-outline-secondary">Clear cart</button>
-        </form>
+        <div class="d-flex justify-content-end mb-3">
+            <div class="fw-semibold fs-5">Grand total: $@total.ToString("0.00")</div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" asp-controller="Menu" asp-action="Index">Add more dishes</a>
+            <a class="btn btn-success" asp-controller="Cart" asp-action="Checkout">Checkout</a>
+            <form method="post" asp-controller="Cart" asp-action="Clear">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-secondary">Clear cart</button>
+            </form>
+        </div>
     </div>
 }
