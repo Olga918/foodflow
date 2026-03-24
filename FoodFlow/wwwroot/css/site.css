@@ -159,4 +159,12 @@ body {
   margin-bottom: 0;
 }
 
+.ff-contact-block a {
+  color: var(--ff-primary);
+  text-decoration: none;
+}
+
+.ff-contact-block a:hover {
+  text-decoration: underline;
+}
 

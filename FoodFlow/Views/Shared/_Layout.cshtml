@@ -29,6 +29,9 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Cart" asp-action="Index">Cart</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
+                        </li>
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
@@ -67,9 +70,12 @@
     </main>
 
     <footer class="ff-footer border-top">
-        <div class="container py-3 d-flex justify-content-between flex-wrap gap-2">
+        <div class="container py-3 d-flex justify-content-between flex-wrap gap-2 align-items-center">
             <span>&copy; 2026 FoodFlow</span>
-            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="d-flex flex-wrap gap-3">
+                <a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
+                <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </div>
         </div>
     </footer>
 
