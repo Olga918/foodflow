@@ -130,7 +130,7 @@ body {
   font-weight: 600;
 }
 
-/* Stock: long native selects stay readable */
+ Stock: long native selects stay readable 
 .ff-stock-select {
   max-width: 100%;
 }
@@ -158,3 +158,5 @@ body {
 .ff-recipe-accordion .table {
   margin-bottom: 0;
 }
+
+
