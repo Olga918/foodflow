@@ -1,11 +1,16 @@
 :root {
-  --ff-bg: #f8fafc;
-  --ff-surface: #ffffff;
-  --ff-text: #1f2937;
-  --ff-muted: #6b7280;
-  --ff-primary: #0d6efd;
-  --ff-primary-soft: #e9f2ff;
-  --ff-border: #e5e7eb;
+    --ff-bg: #f8fafc;
+    --ff-surface: #ffffff;
+    --ff-text: #0f172a;
+    --ff-muted: #64748b;
+    --ff-primary: #b45309; /* акцент “coffee” */
+    --ff-primary-600: #92400e;
+    --ff-primary-soft: #fff7ed;
+    --ff-border: #e2e8f0;
+    --ff-radius: 14px;
+    --ff-radius-sm: 10px;
+    --ff-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    --ff-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.06);
 }
 
 html {
@@ -168,3 +173,78 @@ body {
   text-decoration: underline;
 }
 
+/* Base */
+body {
+    color: var(--ff-text);
+    background: var(--ff-bg);
+    font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+}
+/* Navbar */
+.ff-navbar {
+    background: var(--ff-surface);
+    border-bottom: 1px solid var(--ff-border);
+}
+
+    .ff-navbar .nav-link {
+        color: var(--ff-text);
+        font-weight: 600;
+        border-radius: 999px;
+        padding: 0.5rem 0.9rem;
+    }
+
+        .ff-navbar .nav-link:hover,
+        .ff-navbar .nav-link:focus {
+            background: var(--ff-primary-soft);
+            color: var(--ff-primary-600);
+        }
+
+        .ff-navbar .nav-link.active {
+            background: var(--ff-primary);
+            color: #fff;
+        }
+/* Buttons (Bootstrap overrides in your style) */
+.btn-primary {
+    background: var(--ff-primary);
+    border-color: var(--ff-primary);
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+        background: var(--ff-primary-600);
+        border-color: var(--ff-primary-600);
+    }
+
+.btn-outline-primary {
+    color: var(--ff-primary);
+    border-color: var(--ff-primary);
+}
+
+    .btn-outline-primary:hover,
+    .btn-outline-primary:focus {
+        background: var(--ff-primary-soft);
+        color: var(--ff-primary-600);
+        border-color: var(--ff-primary-600);
+    }
+/* Cards / surfaces */
+.ff-card,
+.ff-surface-card {
+    background: var(--ff-surface);
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius);
+    box-shadow: var(--ff-shadow-sm);
+}
+/* Tables */
+.table {
+    background: var(--ff-surface);
+}
+
+    .table thead th {
+        background: #f8fafc;
+        border-bottom: 1px solid var(--ff-border);
+        font-weight: 700;
+    }
+/* Muted text */
+.ff-subtitle,
+.text-muted {
+    color: var(--ff-muted) !important;
+}

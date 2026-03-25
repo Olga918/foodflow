@@ -1,5 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+@{
+    var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? "").ToLowerInvariant();
+    var currentAction = (ViewContext.RouteData.Values["action"]?.ToString() ?? "").ToLowerInvariant();
+    string NavClass(string controller, string? action = null)
+    {
+        controller = controller.ToLowerInvariant();
+        action = action?.ToLowerInvariant();
+        var isActive = action is null
+            ? currentController == controller
+            : currentController == controller && currentAction == action;
+        return isActive ? "nav-link active" : "nav-link";
+    }
+}
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,40 +34,42 @@
                 <div id="ffNav" class="collapse navbar-collapse">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="@NavClass("Home", "Index")" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Menu" asp-action="Index">Menu</a>
+                            <a class="@NavClass("Menu", "Index")" asp-area="" asp-controller="Menu" asp-action="Index">Menu</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Cart" asp-action="Index">Cart</a>
+                            <a class="@NavClass("Cart", "Index")" asp-area="" asp-controller="Cart" asp-action="Index">Cart</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
+                            <a class="@NavClass("Home", "Contact")" asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
                         </li>
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index">Admin</a>
+                                <a class="@NavClass("Admin", "Index")" asp-area="" asp-controller="Admin" asp-action="Index">Admin</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Purchases" asp-action="Index">Purchases</a>
+                                <a class="@NavClass("Purchases", "Index")" asp-area="" asp-controller="Purchases" asp-action="Index">Purchases</a>
                             </li>
                         }
                         @if (User.IsInRole("Cook"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Kitchen" asp-action="Index">Kitchen</a>
+                                <a class="@NavClass("Kitchen", "Index")" asp-area="" asp-controller="Kitchen" asp-action="Index">Kitchen</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Kitchen" asp-action="Prepare">Line prep</a>
+                                <a class="@NavClass("Kitchen", "Prepare")" asp-area="" asp-controller="Kitchen" asp-action="Prepare">Line prep</a>
                             </li>
                         }
                         @if (User.IsInRole("Storekeeper"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Stock" asp-action="Index">Stock</a>
+                                <a class="@NavClass("Stock", "Index")" asp-area="" asp-controller="Stock" asp-action="Index">Stock</a>
                             </li>
+
+
                         }
                     </ul>
                     <partial name="_LoginPartial" />
