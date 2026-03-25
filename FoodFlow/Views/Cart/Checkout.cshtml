@@ -1,68 +1,60 @@
 @model FoodFlow.ViewModels.CheckoutViewModel
 @using FoodFlow.Enums
-
 @{
     ViewData["Title"] = "Checkout";
 }
-
-<h2 class="ff-title">Checkout</h2>
-<p class="ff-subtitle mb-3">Enter your order details and confirm.</p>
-<p class="small text-muted mb-3">
-    Orders use prepared portions from the kitchen line (cook prepares them from warehouse stock). Raw ingredients are not deducted here.
-</p>
-
-<form method="post" asp-action="Checkout" class="ff-surface-card p-3 p-md-4">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
-    <div class="mb-3">
-        <label asp-for="OrderType" class="form-label"></label>
-        <select asp-for="OrderType" class="form-select">
-            <option value="@OrderType.Pickup">Pickup</option>
-            <option value="@OrderType.Delivery">Delivery</option>
-        </select>
-        <span asp-validation-for="OrderType" class="text-danger"></span>
+<div class="ff-checkout-page mx-auto" style="max-width: 640px;">
+    <h2 class="ff-title">Checkout</h2>
+    <p class="ff-subtitle mb-3">Enter your order details and confirm.</p>
+    <div class="ff-surface-card p-3 p-md-4 mb-3">
+        <p class="small text-muted mb-0">
+            Orders use prepared portions from the kitchen line (cook prepares them from warehouse stock). Raw ingredients are not deducted here.
+        </p>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="ContactPhone" class="form-label"></label>
-        <input asp-for="ContactPhone" class="form-control" placeholder="+380501112233" id="contactPhoneInput" />
-        <span asp-validation-for="ContactPhone" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="DeliveryAddress" class="form-label"></label>
-        <textarea asp-for="DeliveryAddress" class="form-control" rows="3" placeholder="City, street, building, apartment"></textarea>
-        <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
-        <small class="text-muted">Required only for delivery orders.</small>
-    </div>
-
-    <div class="d-flex flex-wrap gap-2">
-        <button type="submit" class="btn btn-success">Place order</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Back to cart</a>
-    </div>
-</form>
-
+    <form method="post" asp-action="Checkout" class="ff-surface-card p-3 p-md-4">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        <div class="mb-3">
+            <label asp-for="OrderType" class="form-label"></label>
+            <select asp-for="OrderType" class="form-select">
+                <option value="@OrderType.Pickup">Pickup</option>
+                <option value="@OrderType.Delivery">Delivery</option>
+            </select>
+            <span asp-validation-for="OrderType" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="ContactPhone" class="form-label"></label>
+            <input asp-for="ContactPhone" class="form-control" placeholder="+380501112233" id="contactPhoneInput" />
+            <span asp-validation-for="ContactPhone" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="DeliveryAddress" class="form-label"></label>
+            <textarea asp-for="DeliveryAddress" class="form-control" rows="3" placeholder="City, street, building, apartment"></textarea>
+            <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
+            <small class="text-muted">Required only for delivery orders.</small>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-success">Place order</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Back to cart</a>
+        </div>
+    </form>
+</div>
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
             const phoneInput = document.getElementById("contactPhoneInput");
-
             function normalizePhone() {
                 let value = phoneInput.value;
                 if (value.startsWith("00")) {
                     value = "+" + value.substring(2);
                 }
-
                 value = value.replace(/[^\d+]/g, "");
                 if (value.indexOf("+") > 0) {
                     value = value.replace(/\+/g, "");
                 }
-
                 phoneInput.value = value;
             }
-
             phoneInput.addEventListener("input", normalizePhone);
         })();
     </script>
