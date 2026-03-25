@@ -67,6 +67,13 @@ namespace FoodFlow.Data
                 "FoodFlow Storekeeper",
                 UserRole.Storekeeper.ToString());
 
+            await EnsureUserWithRoleAsync(
+                userManager,
+                "client@foodflow.local",
+                "Client123!",
+                "FoodFlow Client",
+                UserRole.Client.ToString());
+
             var pizzaCategoryId = await EnsureCategoryAsync(db, "Pizza", 1);
             var burgerCategoryId = await EnsureCategoryAsync(db, "Burgers", 2);
             var pastaCategoryId = await EnsureCategoryAsync(db, "Pasta", 3);
