@@ -33,6 +33,28 @@
             <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
             <small class="text-muted">Required only for delivery orders.</small>
         </div>
+        <div class="mb-3">
+            <label asp-for="PaymentMethod" class="form-label"></label>
+            <select asp-for="PaymentMethod" class="form-select">
+                <option value="@PaymentMethod.Cash">Cash on pickup/delivery</option>
+                <option value="@PaymentMethod.Card">Bank card (simulated)</option>
+            </select>
+            <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+        </div>
+        <div class="ff-surface-card p-3 mb-3">
+            <p class="fw-semibold mb-2">Checklist before order confirmation</p>
+            <ul class="small text-muted mb-3">
+                <li>Dish list and total amount are correct</li>
+                <li>Order type (pickup/delivery) is selected correctly</li>
+                <li>Contact phone is valid</li>
+                <li>Delivery address is filled (for delivery only)</li>
+            </ul>
+            <div class="form-check">
+                <input asp-for="ConfirmChecklist" class="form-check-input" />
+                <label asp-for="ConfirmChecklist" class="form-check-label"></label>
+            </div>
+            <span asp-validation-for="ConfirmChecklist" class="text-danger"></span>
+        </div>
         <div class="d-flex flex-wrap gap-2">
             <button type="submit" class="btn btn-success">Place order</button>
             <a asp-action="Index" class="btn btn-outline-secondary">Back to cart</a>

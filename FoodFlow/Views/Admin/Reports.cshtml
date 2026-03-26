@@ -1,6 +1,10 @@
 @model FoodFlow.ViewModels.AdminReportsViewModel
+@using System.Text.Json
 @{
     ViewData["Title"] = "Admin Reports";
+    var chartLabels = Model.DailySales.Select(x => x.Date.ToString("MM-dd")).ToList();
+    var chartRevenue = Model.DailySales.Select(x => x.Revenue).ToList();
+    var chartOrders = Model.DailySales.Select(x => x.OrdersCount).ToList();
 }
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
     <div>
@@ -60,6 +64,12 @@
     <div class="card-header">
         <h5 class="mb-0">Sales by day</h5>
     </div>
+    <div class="card-body">
+        @if (Model.DailySales.Any())
+        {
+            <canvas id="salesByDayChart" height="110"></canvas>
+        }
+    </div>
     <div class="card-body p-0">
         @if (!Model.DailySales.Any())
         {
@@ -91,6 +101,80 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    @if (Model.DailySales.Any())
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            (function() {
+                const labels = @Html.Raw(JsonSerializer.Serialize(chartLabels));
+                const revenue = @Html.Raw(JsonSerializer.Serialize(chartRevenue));
+                const orders = @Html.Raw(JsonSerializer.Serialize(chartOrders));
+
+                const ctx = document.getElementById("salesByDayChart");
+                if (!ctx) return;
+
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: "Revenue ($)",
+                                data: revenue,
+                                borderColor: "#b45309",
+                                backgroundColor: "rgba(180, 83, 9, 0.15)",
+                                fill: true,
+                                tension: 0.3,
+                                yAxisID: "y"
+                            },
+                            {
+                                label: "Orders",
+                                data: orders,
+                                borderColor: "#0d6efd",
+                                backgroundColor: "rgba(13, 110, 253, 0.1)",
+                                fill: false,
+                                tension: 0.3,
+                                yAxisID: "y1"
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: "bottom"
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                position: "left",
+                                title: {
+                                    display: true,
+                                    text: "Revenue"
+                                }
+                            },
+                            y1: {
+                                beginAtZero: true,
+                                position: "right",
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: "Orders"
+                                }
+                            }
+                        }
+                    }
+                });
+            })();
+        </script>
+    }
+}
 <div class="ff-surface-card overflow-hidden mb-4">
     <div class="card-header">
         <h5 class="mb-0">Top dishes</h5>

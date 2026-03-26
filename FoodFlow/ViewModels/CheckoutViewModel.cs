@@ -17,5 +17,12 @@ namespace FoodFlow.ViewModels
 
         [Display(Name = "Delivery address")]
         public string? DeliveryAddress { get; set; }
+
+        [Required]
+        [Display(Name = "Payment method")]
+        public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
+
+        [Display(Name = "I checked order details and agree to proceed with payment.")]
+        public bool ConfirmChecklist { get; set; }
     }
 }

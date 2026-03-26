@@ -254,3 +254,29 @@ body {
     border-bottom: 1px solid var(--ff-border);
     padding: 0.85rem 1rem;
 }
+
+/* Client order timeline */
+.ff-order-timeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.ff-order-timeline .ff-step {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: #eef2f7;
+    color: #475569;
+}
+
+.ff-order-timeline .ff-step.done {
+    background: #e9f9ef;
+    color: #0f7a3d;
+}
+
+.ff-order-timeline .ff-step.cancelled {
+    background: #fff1f1;
+    color: #b42318;
+}

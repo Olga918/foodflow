@@ -3,17 +3,45 @@
 @{
     ViewData["Title"] = "Order created";
     var orderType = (OrderType)ViewBag.OrderType;
+    var paymentMethod = (PaymentMethod)ViewBag.PaymentMethod;
 }
 
-<div class="card p-4 shadow-sm">
+<div id="receiptCard" class="ff-surface-card p-4">
     <h2 class="mb-3 text-success">Order created successfully</h2>
     <p class="mb-1"><strong>Order #:</strong> @ViewBag.OrderId</p>
     <p class="mb-1"><strong>Type:</strong> @orderType</p>
     <p class="mb-1"><strong>Created at:</strong> @ViewBag.CreatedAt</p>
-    <p class="mb-3"><strong>Total:</strong> @(((decimal)ViewBag.TotalAmount).ToString("0.00"))</p>
+    <p class="mb-1"><strong>Total:</strong> $@(((decimal)ViewBag.TotalAmount).ToString("0.00"))</p>
+    <p class="mb-1"><strong>Payment method:</strong> @paymentMethod</p>
+    <p class="mb-3"><strong>Payment status:</strong> @ViewBag.PaymentStatus</p>
 
-    <div class="d-flex gap-2">
+    <div class="alert alert-success py-2 small">
+        Checklist confirmed. Order details and payment step were acknowledged by the customer.
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
         <a asp-controller="Menu" asp-action="Index" class="btn btn-primary">Back to menu</a>
+        <a asp-controller="Cart" asp-action="MyOrders" class="btn btn-outline-primary">My orders</a>
         <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Home</a>
+        <button type="button" class="btn btn-outline-dark" onclick="window.print()">Print receipt</button>
     </div>
 </div>
+
+<style>
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #receiptCard, #receiptCard * {
+            visibility: visible;
+        }
+
+        #receiptCard {
+            position: absolute;
+            inset: 0;
+            box-shadow: none !important;
+            border: 1px solid #ddd;
+        }
+    }
+</style>

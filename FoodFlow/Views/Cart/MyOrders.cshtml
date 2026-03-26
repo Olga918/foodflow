@@ -1,0 +1,62 @@
+@model List<FoodFlow.Models.Order>
+@using FoodFlow.Enums
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<h2 class="ff-title">My Orders</h2>
+<p class="ff-subtitle mb-3">Track your order history and status timeline.</p>
+
+@if (!Model.Any())
+{
+    <div class="ff-surface-card p-4">
+        <p class="mb-3">You have no orders yet.</p>
+        <a class="btn btn-primary" asp-controller="Menu" asp-action="Index">Go to menu</a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var order in Model)
+        {
+            var isCooking = order.Status is OrderStatus.Cooking or OrderStatus.Ready or OrderStatus.Delivered;
+            var isReady = order.Status is OrderStatus.Ready or OrderStatus.Delivered;
+            var isDelivered = order.Status is OrderStatus.Delivered;
+            var isCancelled = order.Status is OrderStatus.Cancelled;
+
+            <div class="col-12">
+                <div class="ff-surface-card p-3 p-md-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                        <div>
+                            <div class="fw-semibold">Order #@order.Id</div>
+                            <small class="text-muted">@order.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">$@order.TotalAmount.ToString("0.00")</div>
+                            <small class="text-muted">@order.OrderType</small>
+                        </div>
+                    </div>
+
+                    <div class="ff-order-timeline mb-3">
+                        <span class="ff-step @(isCancelled ? "cancelled" : "done")">New</span>
+                        <span class="ff-step @((isCooking && !isCancelled) ? "done" : "")">Cooking</span>
+                        <span class="ff-step @((isReady && !isCancelled) ? "done" : "")">Ready</span>
+                        <span class="ff-step @((isDelivered && !isCancelled) ? "done" : "")">Delivered</span>
+                        @if (isCancelled)
+                        {
+                            <span class="ff-step cancelled">Cancelled</span>
+                        }
+                    </div>
+
+                    <ul class="mb-0">
+                        @foreach (var item in order.Items)
+                        {
+                            <li>@item.MenuItem?.Name x @item.Quantity</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+    </div>
+}

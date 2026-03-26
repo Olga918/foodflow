@@ -42,6 +42,12 @@
                         <li class="nav-item">
                             <a class="@NavClass("Cart", "Index")" asp-area="" asp-controller="Cart" asp-action="Index">Cart</a>
                         </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="@NavClass("Cart", "MyOrders")" asp-area="" asp-controller="Cart" asp-action="MyOrders">My orders</a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="@NavClass("Home", "Contact")" asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
                         </li>

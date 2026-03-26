@@ -53,9 +53,18 @@ namespace FoodFlow.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // Checkbox posts hidden "false" + checked "true". Treat as confirmed if any posted value is true.
+            var checklistValues = Request.Form["ConfirmChecklist"];
+            model.ConfirmChecklist = checklistValues.Any(v => string.Equals(v, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(v, "on", StringComparison.OrdinalIgnoreCase));
+
             if (model.OrderType == OrderType.Delivery && string.IsNullOrWhiteSpace(model.DeliveryAddress))
             {
                 ModelState.AddModelError(nameof(model.DeliveryAddress), "Delivery address is required for delivery orders.");
+            }
+
+            if (!model.ConfirmChecklist)
+            {
+                ModelState.AddModelError(nameof(model.ConfirmChecklist), "Please confirm the checklist before placing order.");
             }
 
             if (!ModelState.IsValid)
@@ -159,13 +168,22 @@ namespace FoodFlow.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
+            var paymentStatus = model.PaymentMethod == PaymentMethod.Card
+                ? "Paid (card, simulated)"
+                : "Payment on pickup/delivery";
+
             SaveCart(new List<CartItemViewModel>());
-            return RedirectToAction(nameof(Success), new { id = order.Id });
+            return RedirectToAction(nameof(Success), new
+            {
+                id = order.Id,
+                paymentMethod = model.PaymentMethod,
+                paymentStatus
+            });
         }
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> Success(int id)
+        public async Task<IActionResult> Success(int id, PaymentMethod paymentMethod = PaymentMethod.Cash, string? paymentStatus = null)
         {
             var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(customerId))
@@ -187,7 +205,33 @@ namespace FoodFlow.Controllers
             ViewBag.CreatedAt = order.CreatedAt;
             ViewBag.TotalAmount = order.TotalAmount;
             ViewBag.OrderType = order.OrderType;
+            ViewBag.PaymentMethod = paymentMethod;
+            ViewBag.PaymentStatus = string.IsNullOrWhiteSpace(paymentStatus)
+                ? "Not specified"
+                : paymentStatus;
+            ViewBag.ChecklistConfirmed = true;
             return View();
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> MyOrders()
+        {
+            var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                return Challenge();
+            }
+
+            var orders = await _context.Orders
+                .AsNoTracking()
+                .Where(x => x.CustomerId == customerId)
+                .Include(x => x.Items)
+                    .ThenInclude(x => x.MenuItem)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+
+            return View(orders);
         }
 
         [HttpPost]
