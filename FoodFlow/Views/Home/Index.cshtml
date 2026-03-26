@@ -1,6 +1,8 @@
 @{
     ViewData["Title"] = "Home";
 }
+@using System.Linq
+@using System.Collections.Generic
 @model FoodFlow.ViewModels.HomeIndexViewModel
 
 <div class="ff-hero p-4 p-md-5 mb-4">
@@ -50,10 +52,69 @@
     }
     else
     {
+        // Same mapping as in Menu cards: slugified dish name -> remote image URL.
+        var imageBySlug = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+                ["margherita"] = "https://uk.ooni.com/cdn/shop/articles/20220211142645-margherita-9920_e41233d5-dcec-461c-b07e-03245f031dfe.jpg?v=1737105431&width=1080",
+                ["pepperoni"] = "https://arecipeforfun.com/wp-content/uploads/2025/03/Edits-Turkey-Pepperoni-Pizza-Recipe-14-500x500.jpg",
+                ["bbq-chicken-pizza"] = "https://breadboozebacon.com/wp-content/uploads/2023/05/BBQ-Chicken-Pizza-SQUARE.jpg",
+                ["four-cheese-pizza"] = "https://kitchenatics.com/wp-content/uploads/2020/09/Cheese-pizza-1.jpg",
+                ["vegetarian-pizza"] = "https://www.thursdaynightpizza.com/wp-content/uploads/2022/06/veggie-pizza-side-view-out-of-oven-720x480.png",
+                ["diablo-pizza"] = "https://eu.ooni.com/cdn/shop/articles/Ooni_Diablo_resized.jpg?crop=center&height=800&v=1599659718&width=800",
+                ["cheese-burger"] = "https://assets.afcdn.com/recipe/20161114/55392_w1024h576c1cx2808cy1872.jpg",
+                ["double-burger"] = "https://media-cdn.tripadvisor.com/media/photo-s/1c/cd/ae/72/double-gorilla-burger.jpg",
+                ["chicken-burger"] = "https://images.immediate.co.uk/production/volatile/sites/30/2025/04/Crispiest-buttermilk-fried-chicken-burgers-90854e5.jpg?quality=90&resize=708,643",
+                ["mushroom-burger"] = "https://americanolivefarmer.com/cdn/shop/articles/IMG_4868.jpg?v=1749072179&width=3024",
+                ["carbonara"] = "https://leitesculinaria.com/wp-content/uploads/2024/04/spaghetti-carbonara-1200.jpg",
+                ["bolognese"] = "https://ichef.bbci.co.uk/food/ic/food_16x9_1600/recipes/easy_spaghetti_bolognese_93639_16x9.jpg",
+                ["alfredo"] = "https://www.sharmispassions.com/wp-content/uploads/2015/12/alfredopasta5-500x500.jpg",
+                ["pesto-pasta"] = "https://cdn.loveandlemons.com/wp-content/uploads/2025/07/pesto-pasta.jpg",
+                ["caesar-salad"] = "https://assets.bonappetit.com/photos/624215f8a76f02a99b29518f/1:1/w_2560%2Cc_limit/0328-ceasar-salad-lede.jpg",
+                ["greek-salad"] = "https://hips.hearstapps.com/hmg-prod/images/greek-salad-index-642f292397bbf.jpg?crop=0.888888888888889xw:1xh;center,top&resize=1200:*",
+                ["tuna-salad"] = "https://downshiftology.com/wp-content/uploads/2020/04/Tuna-Salad-main-500x375.jpg",
+                ["cola"] = "https://upload.wikimedia.org/wikipedia/commons/2/27/Coca_Cola_Flasche_-_Original_Taste.jpg",
+                ["orange-juice"] = "https://greenletes.com/wp-content/uploads/2018/05/orange-juice.png",
+                ["americano"] = "https://myeverydaytable.com/wp-content/uploads/AmericanoHotandIced-3.jpg",
+                ["cappuccino"] = "https://assets.afcdn.com/recipe/20160919/20976_w1024h1024c1cx2624cy1749.webp",
+                ["lemonade"] = "https://tarateaspoon.com/wp-content/uploads/2023/07/classic-lemonade-sq-08.jpg",
+                ["still-water"] = "https://media.istockphoto.com/id/2184949546/photo/pouring-drinking-water-into-glass-on-wooden-table-on-blurred-green-nature-bokeh-background.jpg?s=612x612&w=0&k=20&c=s4QhlpYZ8B2RJcV6Y3aFkbkVGzvLRGnxKTEzlPu_KH4=",
+                ["cheesecake"] = "https://www.mycake.fr/wp-content/uploads/2020/07/rs_CK_google_1x1.jpg",
+                ["chocolate-brownie"] = "https://www.thecookingcollective.com.au/wp-content/uploads/2022/09/triple-chocolate-brownies-3.jpg",
+                ["tiramisu"] = "https://assets.afcdn.com/recipe/20190529/93097_w1024h768c1cx3008cy2008cxt0cyt0cxb6016cyb4016.webp",
+                ["apple-pie"] = "https://recipe30.com/wp-content/uploads/2020/11/Apple-pie.jpg",
+                ["garlic-bread"] = "https://delightfuladventures.com/wp-content/uploads/2023/09/vegan-garlic-bread-recipe-500x500.jpg",
+                ["chicken-wings"] = "https://easychickenrecipes.com/wp-content/uploads/2023/08/featured-buffalo-wings-recipe.jpg",
+                ["mozzarella-sticks"] = "https://easyweeknightrecipes.com/wp-content/uploads/2024/04/Mozzarella-Sticks_0013.jpg",
+                ["grilled-salmon"] = "https://whatmollymade.com/wp-content/uploads/2025/06/grilled-salmon-4.jpg",
+                ["shrimp-pasta"] = "https://www.billyparisi.com/wp-content/uploads/2025/06/garlic-shrimp-pasta-2.jpg",
+                ["tom-yum"] = "https://hot-thai-kitchen.com/wp-content/uploads/2013/03/tom-yum-goong-blog.jpg",
+                ["chicken-noodle-soup"] = "https://www.budgetbytes.com/wp-content/uploads/2017/02/Chicken-Noodle-Soup-Overhead.jpg"
+        };
         <div class="ff-menu-grid">
             @foreach (var item in Model.RecommendedDishes)
             {
                 <div class="ff-card card">
+                    @{
+                        var slug = new string(item.Name
+                            .ToLowerInvariant()
+                            .Select(ch => char.IsLetterOrDigit(ch) ? ch : '-')
+                            .ToArray())
+                            .Trim('-');
+                        while (slug.Contains("--"))
+                        {
+                            slug = slug.Replace("--", "-");
+                        }
+
+                        var imageUrl = imageBySlug.TryGetValue(slug, out var url)
+                            ? url
+                            : "/images/menu/default.svg";
+                    }
+                    <img class="ff-menu-img"
+                         src="@imageUrl"
+                         loading="eager"
+                         style="background: var(--ff-surface);"
+                         onerror="this.onerror=null;this.src='/images/menu/default.svg';"
+                         alt="@item.Name" />
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="card-title mb-0">@item.Name</h5>
@@ -90,4 +151,82 @@
             }
         </div>
     }
+</section>
+
+<section class="mt-5">
+    <div class="d-flex justify-content-between align-items-end mb-3">
+        <div>
+            <h2 class="ff-title mb-1">Customer Reviews</h2>
+                <p class="ff-subtitle mb-0">10 reviews. Use the arrows to browse.</p>
+        </div>
+    </div>
+
+    @{
+        var reviews = new[]
+        {
+            new { Name = "Ирина К.", Rating = 5, Comment = "The pizza arrived hot and tasted amazing. It’s super convenient that you can see progress through the order statuses.", AvatarUrl = "https://i.pravatar.cc/120?img=12" },
+            new { Name = "Алексей П.", Rating = 4, Comment = "Everything was great: speed and packaging were on point. I really liked how clearly the kitchen works and the notifications you get.", AvatarUrl = "https://i.pravatar.cc/120?img=33" },
+            new { Name = "Мария С.", Rating = 5, Comment = "We ordered for a group and the dishes arrived on time. The salad was fresh and the pasta was delicious.", AvatarUrl = "https://i.pravatar.cc/120?img=45" },
+            new { Name = "Дмитрий В.", Rating = 4, Comment = "Great quality overall—especially the pizza with a solid topping. In peak hours it took a little longer.", AvatarUrl = "https://i.pravatar.cc/120?img=7" },
+            new { Name = "Екатерина Р.", Rating = 5, Comment = "The tiramisu was fantastic—tender and not overly sweet. Overall, the service feels really friendly.", AvatarUrl = "https://i.pravatar.cc/120?img=22" },
+            new { Name = "Олег Н.", Rating = 4, Comment = "The burger was packed well and everything arrived neat and tidy. The statuses were clear—no confusion at all.", AvatarUrl = "https://i.pravatar.cc/120?img=58" },
+            new { Name = "Анна Г.", Rating = 5, Comment = "The pesto pasta tasted just like in a café. Full of flavor, and the portion size was perfect.", AvatarUrl = "https://i.pravatar.cc/120?img=61" },
+            new { Name = "Сергей Д.", Rating = 4, Comment = "Tasty and filling. I also noticed the kitchen follows each step—everything is visible in the app.", AvatarUrl = "https://i.pravatar.cc/120?img=19" },
+            new { Name = "Виктория Л.", Rating = 5, Comment = "We loved the grilled salmon—it was tender and full of aroma. We’ll definitely order again.", AvatarUrl = "https://i.pravatar.cc/120?img=29" },
+            new { Name = "Роман М.", Rating = 4, Comment = "Everything tasted great. The drink arrived a bit later, but overall it was a very good experience.", AvatarUrl = "https://i.pravatar.cc/120?img=41" }
+        };
+    }
+
+    <div id="ffReviewsCarousel" class="carousel slide" data-bs-interval="false">
+        <div class="carousel-inner">
+            @for (int i = 0; i < reviews.Length; i++)
+            {
+                var review = reviews[i];
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <div class="ff-surface-card p-4 h-100">
+                        <div class="d-flex align-items-start gap-3">
+                            <img src="@review.AvatarUrl"
+                                 class="rounded-circle"
+                                 style="width:56px;height:56px;object-fit:cover;"
+                                 alt="@review.Name" />
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                    <div>
+                                        <div class="fw-bold">@review.Name</div>
+                                        <div class="d-flex align-items-center gap-1">
+                                            @for (int s = 1; s <= 5; s++)
+                                            {
+                                                var isFilled = s <= review.Rating;
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                     width="16"
+                                                     height="16"
+                                                     viewBox="0 0 24 24"
+                                                     aria-hidden="true"
+                                                     style="display:block"
+                                                     fill="@(isFilled ? "#f59e0b" : "#e5e7eb")">
+                                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                </svg>
+                                            }
+                                        </div>
+                                    </div>
+                                    <span class="text-muted small">Verified</span>
+                                </div>
+
+                                <p class="mb-0 mt-2">@review.Comment</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#ffReviewsCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#ffReviewsCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
 </section>

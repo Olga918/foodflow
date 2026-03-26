@@ -1,5 +1,6 @@
 @model FoodFlow.ViewModels.MenuIndexViewModel
 @using System.Linq
+@using System.Collections.Generic
 <h2 class="ff-title">Menu</h2>
 <p class="ff-subtitle mb-3">Choose your favorite dishes and add them to cart.</p>
 <div class="mb-3 d-flex flex-wrap gap-2">
@@ -36,6 +37,47 @@
 else
 {
     <div class="ff-menu-grid">
+        @{
+            // Map slugified menu item name => remote image URL.
+            // We use these direct links so photos match the dish (no random placeholder).
+            var imageBySlug = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["margherita"] = "https://uk.ooni.com/cdn/shop/articles/20220211142645-margherita-9920_e41233d5-dcec-461c-b07e-03245f031dfe.jpg?v=1737105431&width=1080",
+                ["pepperoni"] = "https://arecipeforfun.com/wp-content/uploads/2025/03/Edits-Turkey-Pepperoni-Pizza-Recipe-14-500x500.jpg",
+                ["bbq-chicken-pizza"] = "https://breadboozebacon.com/wp-content/uploads/2023/05/BBQ-Chicken-Pizza-SQUARE.jpg",
+                ["four-cheese-pizza"] = "https://kitchenatics.com/wp-content/uploads/2020/09/Cheese-pizza-1.jpg",
+                ["vegetarian-pizza"] = "https://www.thursdaynightpizza.com/wp-content/uploads/2022/06/veggie-pizza-side-view-out-of-oven-720x480.png",
+                ["diablo-pizza"] = "https://eu.ooni.com/cdn/shop/articles/Ooni_Diablo_resized.jpg?crop=center&height=800&v=1599659718&width=800",
+                ["cheese-burger"] = "https://assets.afcdn.com/recipe/20161114/55392_w1024h576c1cx2808cy1872.jpg",
+                ["double-burger"] = "https://media-cdn.tripadvisor.com/media/photo-s/1c/cd/ae/72/double-gorilla-burger.jpg",
+                ["chicken-burger"] = "https://images.immediate.co.uk/production/volatile/sites/30/2025/04/Crispiest-buttermilk-fried-chicken-burgers-90854e5.jpg?quality=90&resize=708,643",
+                ["mushroom-burger"] = "https://americanolivefarmer.com/cdn/shop/articles/IMG_4868.jpg?v=1749072179&width=3024",
+                ["carbonara"] = "https://leitesculinaria.com/wp-content/uploads/2024/04/spaghetti-carbonara-1200.jpg",
+                ["bolognese"] = "https://ichef.bbci.co.uk/food/ic/food_16x9_1600/recipes/easy_spaghetti_bolognese_93639_16x9.jpg",
+                ["alfredo"] = "https://www.sharmispassions.com/wp-content/uploads/2015/12/alfredopasta5-500x500.jpg",
+                ["pesto-pasta"] = "https://cdn.loveandlemons.com/wp-content/uploads/2025/07/pesto-pasta.jpg",
+                ["caesar-salad"] = "https://assets.bonappetit.com/photos/624215f8a76f02a99b29518f/1:1/w_2560%2Cc_limit/0328-ceasar-salad-lede.jpg",
+                ["greek-salad"] = "https://hips.hearstapps.com/hmg-prod/images/greek-salad-index-642f292397bbf.jpg?crop=0.888888888888889xw:1xh;center,top&resize=1200:*",
+                ["tuna-salad"] = "https://downshiftology.com/wp-content/uploads/2020/04/Tuna-Salad-main-500x375.jpg",
+                ["cola"] = "https://upload.wikimedia.org/wikipedia/commons/2/27/Coca_Cola_Flasche_-_Original_Taste.jpg",
+                ["orange-juice"] = "https://greenletes.com/wp-content/uploads/2018/05/orange-juice.png",
+                ["americano"] = "https://myeverydaytable.com/wp-content/uploads/AmericanoHotandIced-3.jpg",
+                ["cappuccino"] = "https://assets.afcdn.com/recipe/20160919/20976_w1024h1024c1cx2624cy1749.webp",
+                ["lemonade"] = "https://tarateaspoon.com/wp-content/uploads/2023/07/classic-lemonade-sq-08.jpg",
+                ["still-water"] = "https://media.istockphoto.com/id/2184949546/photo/pouring-drinking-water-into-glass-on-wooden-table-on-blurred-green-nature-bokeh-background.jpg?s=612x612&w=0&k=20&c=s4QhlpYZ8B2RJcV6Y3aFkbkVGzvLRGnxKTEzlPu_KH4=",
+                ["cheesecake"] = "https://www.mycake.fr/wp-content/uploads/2020/07/rs_CK_google_1x1.jpg",
+                ["chocolate-brownie"] = "https://www.thecookingcollective.com.au/wp-content/uploads/2022/09/triple-chocolate-brownies-3.jpg",
+                ["tiramisu"] = "https://assets.afcdn.com/recipe/20190529/93097_w1024h768c1cx3008cy2008cxt0cyt0cxb6016cyb4016.webp",
+                ["apple-pie"] = "https://recipe30.com/wp-content/uploads/2020/11/Apple-pie.jpg",
+                ["garlic-bread"] = "https://delightfuladventures.com/wp-content/uploads/2023/09/vegan-garlic-bread-recipe-500x500.jpg",
+                ["chicken-wings"] = "https://easychickenrecipes.com/wp-content/uploads/2023/08/featured-buffalo-wings-recipe.jpg",
+                ["mozzarella-sticks"] = "https://easyweeknightrecipes.com/wp-content/uploads/2024/04/Mozzarella-Sticks_0013.jpg",
+                ["grilled-salmon"] = "https://whatmollymade.com/wp-content/uploads/2025/06/grilled-salmon-4.jpg",
+                ["shrimp-pasta"] = "https://www.billyparisi.com/wp-content/uploads/2025/06/garlic-shrimp-pasta-2.jpg",
+                ["tom-yum"] = "https://hot-thai-kitchen.com/wp-content/uploads/2013/03/tom-yum-goong-blog.jpg",
+                ["chicken-noodle-soup"] = "https://www.budgetbytes.com/wp-content/uploads/2017/02/Chicken-Noodle-Soup-Overhead.jpg"
+            };
+        }
         @foreach (var item in Model.Items)
         {
             <div class="ff-card card">
@@ -49,11 +91,14 @@ else
                     {
                         slug = slug.Replace("--", "-");
                     }
+                    var imageUrl = imageBySlug.TryGetValue(slug, out var url)
+                        ? url
+                        : "/images/menu/default.svg";
                 }
-                <img class="ff-menu-img"
-                     src='@($"/images/menu/{slug}.jpg")'
-                     onerror="this.onerror=null;this.src='/images/menu/default.jpg';"
-                     alt="@item.Name" />
+                        <img class="ff-menu-img"
+                             src='@imageUrl'
+                             onerror="this.onerror=null;this.src='/images/menu/default.svg';"
+                             alt="@item.Name" />
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h5 class="card-title mb-0">@item.Name</h5>

@@ -22,7 +22,12 @@ body {
     margin: 0;
     color: var(--ff-text);
     font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
-    background: radial-gradient(circle at 15% 10%, rgba(180, 83, 9, 0.08), transparent 35%), radial-gradient(circle at 85% 20%, rgba(13, 110, 253, 0.06), transparent 30%), #f8fafc;
+    background:
+        radial-gradient(circle at 12% 8%, rgba(180, 83, 9, 0.2), transparent 34%),
+        radial-gradient(circle at 88% 14%, rgba(13, 110, 253, 0.14), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.08), transparent 32%),
+        #f8fafc;
+    background-attachment: fixed;
 }
 /* Layout */
 .ff-main {
