@@ -2,6 +2,9 @@
 bin/
 obj/
 
+# Локальные секреты (строка подключения к БД)
+FoodFlow/appsettings.Development.json
+
 # Local screenshots / homework captures (not part of the app)
 images/
 *.user
