@@ -105,12 +105,19 @@
 @section Scripts {
     @if (Model.DailySales.Any())
     {
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
         <script>
             (function() {
-                const labels = @Html.Raw(JsonSerializer.Serialize(chartLabels));
-                const revenue = @Html.Raw(JsonSerializer.Serialize(chartRevenue));
-                const orders = @Html.Raw(JsonSerializer.Serialize(chartOrders));
+                let labels = @Html.Raw(JsonSerializer.Serialize(chartLabels));
+                let revenue = @Html.Raw(JsonSerializer.Serialize(chartRevenue));
+                let orders = @Html.Raw(JsonSerializer.Serialize(chartOrders));
+
+                // Линия нуждается минимум в двух точках; один день в фильтре — добавляем «ноль» слева.
+                if (labels.length === 1) {
+                    labels = ["", labels[0]];
+                    revenue = [0, revenue[0]];
+                    orders = [0, orders[0]];
+                }
 
                 const ctx = document.getElementById("salesByDayChart");
                 if (!ctx) return;
@@ -125,8 +132,10 @@
                                 data: revenue,
                                 borderColor: "#b45309",
                                 backgroundColor: "rgba(180, 83, 9, 0.15)",
+                                borderWidth: 2,
                                 fill: true,
-                                tension: 0.3,
+                                tension: 0.35,
+                                spanGaps: false,
                                 yAxisID: "y"
                             },
                             {
@@ -134,8 +143,10 @@
                                 data: orders,
                                 borderColor: "#0d6efd",
                                 backgroundColor: "rgba(13, 110, 253, 0.1)",
+                                borderWidth: 2,
                                 fill: false,
-                                tension: 0.3,
+                                tension: 0.35,
+                                spanGaps: false,
                                 yAxisID: "y1"
                             }
                         ]
@@ -149,6 +160,12 @@
                             }
                         },
                         scales: {
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 0
+                                }
+                            },
                             y: {
                                 beginAtZero: true,
                                 position: "left",

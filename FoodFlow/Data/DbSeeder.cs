@@ -16,7 +16,17 @@ namespace FoodFlow.Data
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            await db.Database.MigrateAsync();
+            // Existing migrations are SQL Server-based.
+            // For MySQL runtime, create schema directly from the current model.
+            if (db.Database.ProviderName?.Contains("MySQL", StringComparison.OrdinalIgnoreCase) == true ||
+                db.Database.ProviderName?.Contains("MySql", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                await db.Database.EnsureCreatedAsync();
+            }
+            else
+            {
+                await db.Database.MigrateAsync();
+            }
 
             var roles = new[]
             {

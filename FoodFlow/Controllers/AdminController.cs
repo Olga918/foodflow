@@ -54,14 +54,13 @@ namespace FoodFlow.Controllers
             }
 
             var endExclusive = toDate.AddDays(1);
-            var completedStatuses = new[] { OrderStatus.Ready, OrderStatus.Delivered };
 
             var filteredOrdersQuery = _context.Orders
                 .AsNoTracking()
                 .Where(x =>
                     x.CreatedAt >= fromDate &&
                     x.CreatedAt < endExclusive &&
-                    completedStatuses.Contains(x.Status));
+                    x.Status != OrderStatus.Cancelled);
 
             var ordersCount = await filteredOrdersQuery.CountAsync();
             var totalRevenue = await filteredOrdersQuery
@@ -75,7 +74,7 @@ namespace FoodFlow.Controllers
                     x.Order != null &&
                     x.Order.CreatedAt >= fromDate &&
                     x.Order.CreatedAt < endExclusive &&
-                    completedStatuses.Contains(x.Order.Status))
+                    x.Order.Status != OrderStatus.Cancelled)
                 .GroupBy(x => new
                 {
                     x.MenuItemId,
@@ -93,7 +92,7 @@ namespace FoodFlow.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            var dailySales = await filteredOrdersQuery
+            var dailySalesRaw = await filteredOrdersQuery
                 .GroupBy(x => x.CreatedAt.Date)
                 .Select(x => new DailySalesReportRow
                 {
@@ -103,6 +102,9 @@ namespace FoodFlow.Controllers
                 })
                 .OrderBy(x => x.Date)
                 .ToListAsync();
+
+            // Все календарные дни в диапазоне — иначе Chart.js рисует только точки без линии при одном дне с данными.
+            var dailySales = FillDailySalesGaps(dailySalesRaw, fromDate, toDate);
 
             var lowStockProducts = await _context.Products
                 .AsNoTracking()
@@ -130,6 +132,24 @@ namespace FoodFlow.Controllers
                 DailySales = dailySales,
                 LowStockProducts = lowStockProducts
             };
+        }
+
+        private static List<DailySalesReportRow> FillDailySalesGaps(
+            IReadOnlyList<DailySalesReportRow> rows,
+            DateTime fromDate,
+            DateTime toDate)
+        {
+            var byDay = rows.ToDictionary(r => r.Date.Date);
+            var list = new List<DailySalesReportRow>();
+            for (var d = fromDate.Date; d <= toDate.Date; d = d.AddDays(1))
+            {
+                if (byDay.TryGetValue(d, out var row))
+                    list.Add(row);
+                else
+                    list.Add(new DailySalesReportRow { Date = d, OrdersCount = 0, Revenue = 0m });
+            }
+
+            return list;
         }
 
         private static string BuildCsv(AdminReportsViewModel vm)
@@ -183,8 +203,9 @@ namespace FoodFlow.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ClearTestOrders()
         {
-            var orderItemsDeleted = await _context.OrderItems.ExecuteDeleteAsync();
-            var ordersDeleted = await _context.Orders.ExecuteDeleteAsync();
+            // ExecuteDeleteAsync() генерирует SQL с алиасами, несовместимый с некоторыми версиями MariaDB/MySQL.
+            var orderItemsDeleted = await _context.Database.ExecuteSqlRawAsync("DELETE FROM `OrderItems`");
+            var ordersDeleted = await _context.Database.ExecuteSqlRawAsync("DELETE FROM `Orders`");
 
             TempData["AdminMessage"] = $"Deleted {ordersDeleted} orders and {orderItemsDeleted} order items.";
             return RedirectToAction(nameof(Index));
